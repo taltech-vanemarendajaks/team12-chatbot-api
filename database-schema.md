@@ -27,7 +27,9 @@
         'technology',
         'architecture',
         'development',
-        'estimation'
+        'estimation',
+        'databases',
+        'general'
     );
 
 **Relationship:**
