@@ -1,17 +1,9 @@
-## Usage
-`/spec [feature-name]`
-
-## Context  
-- Generate Next.js frontend code for: **$ARGUMENTS**
-- Reference Prisma schema, openai.ts, GitHub project
-- Follow shadcn/ui + App Router patterns
-
-# Spec.md - Next.js RAG Chatbot Frontend
+# Spec.mdc - Next.js RAG Chatbot Frontend
 
 ## Overview
 Production-ready **2-page Next.js 15 App Router** chatbot with RAG (Retrieval-Augmented Generation). Upload documents → chat with your knowledge base.
 
-**Status**: Sprint 1 (P0) - GitHub Project item #1 ✅
+**Status**: Sprint 1 (P0)
 
 ## Pages Structure
 
@@ -33,16 +25,14 @@ app/
 ✅ Real-time chat with OpenAI (gpt-4o-mini)
 ✅ Message history (Prisma Message model)  
 ✅ RAG context injection (pgvector chunks)
-✅ Source citations [Doc: filename.pdf #2]
-✅ Dehydrated state (server → client JSON)
-✅ Streaming responses (AI SDK or raw)
+✅ Dehydrated state
 ✅ Previous conversations list
 ```
 
 **Key Components**:
 ```tsx
 - ChatWindow (messages + input)
-- MessageBubble (user/assistant + sources)
+- MessageBubble (user/assistant)
 - ConversationList (server component)
 - useChat hook (state + API calls)
 ```
@@ -56,7 +46,6 @@ app/
 ✅ pgvector storage (Document + DocumentChunk)
 ✅ Progress indicators
 ✅ File list + delete
-✅ Preview chunks before indexing
 ```
 
 **Key Components**:
@@ -71,7 +60,7 @@ app/
 ```
 1. AddDocs: File → chunks → embeddings → Prisma (DocumentChunk.embedding)
 2. Conversation: User msg → embed → pgvector search → RAG prompt → OpenAI → UI
-3. Dehydration: Server queries → JSON → client useState<Message[]>
+3. Dehydration: Server queries → client useState<Message[]>
 ```
 
 ## Tech Stack
@@ -81,7 +70,7 @@ app/
 ✅ TypeScript (Prisma types everywhere)
 ✅ Tailwind CSS + shadcn/ui (design system)
 ✅ Prisma + pgvector (Postgres vectors)
-✅ Vercel AI SDK (gateway, no API key)
+✅ Vercel AI SDK
 ✅ @ai-sdk/vercel (chat.completions + embeddings)
 ✅ React 19 (useTransition, useOptimistic)
 ✅ Zod (API validation)
@@ -92,28 +81,12 @@ app/
 **Server Components** → **Dehydration** → **Client useState**
 ```tsx
 // Server Component (app/conversation/page.tsx)
-export default async function ConversationPage() {
-  const conversations = await prisma.conversation.findMany() // Prisma types
-  return (
-    <ClientChat 
-      initialConversations={JSON.stringify(conversations)} // Dehydrated
-      initialMessages={JSON.stringify(messages)} 
-    />
-  )
-}
-
-// Client Component
-'use client'
-function ClientChat({ initialConversations, initialMessages }: Props) {
-  const [messages] = useState<Message[]>(JSON.parse(initialMessages)) // Typed!
-  const [conversations] = useState<Conversation[]>(JSON.parse(initialConversations))
-}
 ```
 
 ## API Routes
 
 ```
-✅ POST /api/chat           # RAG conversation (messages → OpenAI + sources)
+✅ POST /api/chat           # RAG conversation (messages → OpenAI)
 ✅ POST /api/analyze-text   # Text analysis (existing)
 ✅ POST /api/docs           # Upload + chunk + embed + store
 ✅ GET  /api/conversations  # List user conversations
@@ -122,10 +95,10 @@ function ClientChat({ initialConversations, initialMessages }: Props) {
 
 ## UI Components Library (shadcn/ui)
 ```
-- Button, Input, Card, Badge
+- Button, Input, Card, Badge, Drawer
 - Progress, Skeleton, ScrollArea  
 - Dialog (file preview), DropdownMenu
-- Chat bubbles (markdown + syntax highlight)
+- Chat bubbles (simple)
 - Data table (documents list)
 ```
 
@@ -134,17 +107,14 @@ function ClientChat({ initialConversations, initialMessages }: Props) {
 **Root `app/layout.tsx`**:
 ```tsx
 - Responsive sidebar (collapsible)
-- Top nav (logo + user menu)
-- Mobile hamburger menu
+- Top nav (right: user )
 - Dark mode toggle
 - Tailwind + shadcn theme provider
 ```
 
 ## Success Metrics
 ```
-✅ Loads < 2s (App Router RSC)
-✅ 100+ docs indexed (pgvector scale)
-✅ Chat latency < 3s (streaming)
+✅ Chat latency < 3s
 ✅ Type errors = 0 (Prisma + Zod)
 ✅ Mobile responsive (iPhone 14+)
 ✅ Vercel deploy 1-click
@@ -160,8 +130,8 @@ zod react-markdown
 
 ## GitHub Project Integration
 ```
-Sprint 1: Conversation page (5pt) ✅
-Sprint 1: AddDocs page (3pt) ⏳
+Sprint 1: Conversation page (5pt)
+Sprint 1: AddDocs page (3pt)
 Sprint 2: RAG backend (8pt)
 Sprint 2: pgvector (5pt)
 ```
