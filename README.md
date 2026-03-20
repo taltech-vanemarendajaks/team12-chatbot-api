@@ -152,6 +152,13 @@ The application uses Spring Profiles to separate configuration for different env
 export SPRING_PROFILES_ACTIVE=local
 ./mvnw spring-boot:run
 ```
+## Swagger 
+
+This project has Swagger setup as well and is running on `http://localhost:8080/swagger-ui/index.html`
+
+**Important:** 
+Swagger only runs locally, currently its turned off when running in docker - see application-docker.properties.
+For Swagger documentation : `http://localhost:8080/v3/api-docs`
 
 ## API Endpoints
 
