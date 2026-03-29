@@ -10,8 +10,17 @@
     <!-- Initial schema managed by Liquibase -->
     <include file="db/changelog/sql/V2026.03.22_1801__initial_schema.sql" relativeToChangelogFile="false"/>
     
-    <!-- Seed user data -->
+    <!-- Seed user data (runs before table alterations) -->
     <include file="db/changelog/sql/V2026.03.29_1200__seed_initial_users.sql" relativeToChangelogFile="false"/>
+    
+    <!-- Create roles table and seed initial roles -->
+    <include file="db/changelog/sql/V2026.03.29_1400__create_roles_table.sql" relativeToChangelogFile="false"/>
+    
+    <!-- Alter users table to match current User entity (add email, role_id, rename username) -->
+    <include file="db/changelog/sql/V2026.03.29_1500__alter_users_table.sql" relativeToChangelogFile="false"/>
+    
+    <!-- Update test users with email addresses -->
+    <include file="db/changelog/sql/V2026.03.29_1600__update_test_users_emails.sql" relativeToChangelogFile="false"/>
     
     <!-- Banned words table for content moderation -->
     <include file="db/changelog/sql/V2026.03.29_1300__create_banned_words_table.sql" relativeToChangelogFile="false"/>
