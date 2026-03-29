@@ -2,12 +2,17 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <!-- Migration from Hibernate DDL to Liquibase: drops tables only if created by Hibernate -->
     <include file="db/changelog/sql/V2026.03.22_1800__drop_hibernate_tables.sql" relativeToChangelogFile="false"/>
     
     <!-- Initial schema managed by Liquibase -->
     <include file="db/changelog/sql/V2026.03.22_1801__initial_schema.sql" relativeToChangelogFile="false"/>
+    
+    <!-- Seed user data -->
+    <include file="db/changelog/sql/V2026.03.29_1200__seed_initial_users.sql" relativeToChangelogFile="false"/>
+
+    <!-- Add future migrations below this line -->
 
 </databaseChangeLog>

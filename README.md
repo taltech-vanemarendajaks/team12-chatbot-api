@@ -46,6 +46,8 @@ set -a; source .env; set +a
 cd bossbot
 ./mvnw spring-boot:run
 
+# IMPORTANT: Make sure your .env has SPRING_PROFILES_ACTIVE=local (or omit it entirely)
+
 # if you're already inside the `bossbot` folder, load the repo `.env` from the parent
 set -a; source ../.env; set +a
 ./mvnw spring-boot:run
@@ -205,3 +207,63 @@ curl http://localhost:8080/api/v1/stamp-answers/most-used
 - Ensure that Docker is running in your computer
 - Run `docker compose up`
 - Testing, API EP: `GET` `localhost:8080/api/users` gives the list of users (initially created on first run as testusers)
+
+# Liquibase Setup
+
+This project uses Liquibase for database schema migration management with **XML master changelog + SQL migration files**.
+
+## How It Works
+
+- **Runtime**: Liquibase runs automatically on application startup (both local & Docker)
+- **Tracking**: Creates `databasechangelog` and `databasechangeloglock` tables
+- **Safety**: Each changeSet runs only once (tracked by id + author + filename)
+- **No create_database.sql needed**: The database itself is created by Docker Compose (`POSTGRES_DB` env var) or manually for local development. Liquibase manages the **schema** (tables, indexes), not database creation.
+
+### Step 1: Create SQL File
+
+Create a new file: `src/main/resources/db/changelog/sql/00X-description.sql`
+
+### Step 2: Include in Master Changelog
+
+Add to `db.changelog-master.xml`:
+
+```xml
+<include file="db/changelog/sql/00X-description.sql" relativeToChangelogFile="false"/>
+```
+
+## Important Rules
+
+1. **Never modify existing changeSet files** after they've been applied to any database
+2. **Always create new migration files** for schema changes
+3. **Include rollback statements** when possible
+4. **Test locally first** before pushing to shared environments
+
+## SQL Format Requirements
+
+Each SQL migration file **MUST** start with these exact lines:
+
+```sql
+--liquibase formatted sql
+--changeset author:unique-id
+```
+
+These two lines are required by Liquibase to track which migrations have been run. The `author` can be any string (e.g., your name or team name), and the `unique-id` should be a unique identifier for that changeSet (e.g., a sequential number or descriptive name).
+
+## Rollback
+
+To rollback the last migration:
+
+```bash
+./mvnw liquibase:rollback -Dliquibase.rollbackCount=1
+```
+
+## Database Creation
+
+Liquibase manages the **schema** (tables, columns, indexes), not database creation.
+
+The database itself is created by:
+
+- **Docker**: `POSTGRES_DB` environment variable in `docker-compose.yaml`
+- **Local**: Manually create `bossbot` database before running the app
+
+Liquibase runs **after** the database exists and manages only the schema.
