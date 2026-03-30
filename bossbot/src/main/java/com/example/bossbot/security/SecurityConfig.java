@@ -4,6 +4,7 @@ import com.example.bossbot.user.User;
 import com.example.bossbot.user.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -26,6 +28,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -55,6 +58,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final ClientRegistrationRepository clientRegistrationRepository;
+    @Value("${app.security.permit-all:false}") // by default false
+    private boolean permitAll;
 
     @Bean
     public JwtDecoder jwtDecoder(JwtService jwtService) {
@@ -107,19 +112,35 @@ public class SecurityConfig {
 
         return http
                 .csrf(AbstractHttpConfigurer::disable)
+                // TODO:: test csrf with POST, PUT, DELETE before applying it:
+                // .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 // Let Spring Security add CORS headers on 401/403/preflight too
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .requestCache(RequestCacheConfigurer::disable)
                 // Use IF_REQUIRED session management (stateless for API, sessions for OAuth2)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-                .authorizeHttpRequests(auth -> auth
-                        // Allow OPTIONS for CORS preflight
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Allow OAuth2 endpoints and public routes
-                        .requestMatchers("/", "/error", "/oauth2/**", "/login/oauth2/code/**", "/auth/login/success")
-                        .permitAll()
-                        // TODO: add other public API EP if any
-                        // All other API requests require authentication
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> {
+                    if (permitAll) {
+                        auth.anyRequest().permitAll();
+                    } else {
+                        auth
+                                // Allow OPTIONS for CORS preflight
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                // Allow OAuth2 endpoints and public routes
+                                .requestMatchers("/", "/error", "/oauth2/**", "/login/oauth2/code/**", "/auth/login/success")
+                                .permitAll()
+                                // TODO: add other public API EP if any
+                                // All other API requests require authentication
+                                .anyRequest().authenticated();
+                    }
+                })
+                // With permitAll=false: Return 401 JSON for /api/** so FE can handle auth; non-API paths still redirect to Google login
+                .exceptionHandling(ex -> ex                                                                                                                                                                                                                          .defaultAuthenticationEntryPointFor(
+                                (request, response, authException) -> {                                                                                                                                                                                                          response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                                },
+                                request -> request.getRequestURI().startsWith("/api/")
+                        )
+                )
                 .oauth2Login(oauth2 -> oauth2
                         .defaultSuccessUrl("/auth/login/success", true)
                         .authorizationEndpoint(auth -> auth.authorizationRequestResolver(customResolver)))
