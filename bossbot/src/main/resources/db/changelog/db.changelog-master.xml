@@ -25,6 +25,9 @@
     <!-- Banned words table for content moderation -->
     <include file="db/changelog/sql/V2026.03.29_1300__create_banned_words_table.sql" relativeToChangelogFile="false"/>
 
+    <!-- Conversations table for grouping user messages -->
+    <include file="db/changelog/sql/V2026.04.01_1800__create_conversations_table.sql" relativeToChangelogFile="false"/>
+
     <!-- Add future migrations below this line -->
 
 </databaseChangeLog>
