@@ -18,8 +18,6 @@ public class StampAnswerResponse {
     private String question;
     private String keywords;
     private String answer;
-    private String category;
-    private Integer priority;
     private Boolean isActive;
     private Integer usageCount;
     private LocalDateTime lastUsedAt;
@@ -37,8 +35,6 @@ public class StampAnswerResponse {
                 .question(entity.getQuestion())
                 .keywords(entity.getKeywords())
                 .answer(entity.getAnswer())
-                .category(entity.getCategory())
-                .priority(entity.getPriority())
                 .isActive(entity.getIsActive())
                 .usageCount(entity.getUsageCount())
                 .lastUsedAt(entity.getLastUsedAt())

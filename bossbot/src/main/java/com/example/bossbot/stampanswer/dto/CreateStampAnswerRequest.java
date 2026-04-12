@@ -20,11 +20,6 @@ public class CreateStampAnswerRequest {
 
     private String answer;
 
-    private String category;
-
-    @Builder.Default
-    private Integer priority = 0;
-
     @Builder.Default
     private Boolean isActive = true;
 

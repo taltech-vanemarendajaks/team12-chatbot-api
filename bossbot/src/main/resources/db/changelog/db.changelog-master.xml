@@ -34,6 +34,9 @@
     <!-- If table previously exists, and has role_name set smallint, change the column type varchar -->
     <include file="db/changelog/sql/V2026.04.05_1900__alter_table_roles.sql" relativeToChangelogFile="false"/>
 
+    <!-- Drop unused category and priority columns from stamp_answers -->
+    <include file="db/changelog/sql/V2026.04.12_1000__drop_stamp_answer_category_priority.sql" relativeToChangelogFile="false"/>
+
     <!-- Add future migrations below this line -->
 
 </databaseChangeLog>

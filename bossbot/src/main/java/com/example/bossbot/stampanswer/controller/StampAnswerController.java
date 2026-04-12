@@ -77,20 +77,6 @@ public class StampAnswerController {
     }
 
     /**
-     * Get stamp answers by category
-     * GET /api/v1/stamp-answers/category/{category}
-     */
-    @Operation(summary = "Get stamp answers by category")
-    @ApiResponse(responseCode = "200", description = "Stamp answers returned")
-    @ApiResponse(responseCode = "500", description = "Internal server error")
-    @GetMapping("/category/{category}")
-    public ResponseEntity<List<StampAnswerResponse>> getByCategory(@PathVariable String category) {
-        log.info("REST request to get stamp answers by category: {}", category);
-        List<StampAnswerResponse> responses = stampAnswerService.getByCategory(category);
-        return ResponseEntity.ok(responses);
-    }
-
-    /**
      * Search stamp answers by question or keywords
      * GET /api/v1/stamp-answers/search?q={searchTerm}
      */

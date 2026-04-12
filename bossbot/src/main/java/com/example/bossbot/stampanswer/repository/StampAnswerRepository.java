@@ -13,14 +13,9 @@ import java.util.Optional;
 public interface StampAnswerRepository extends JpaRepository<StampAnswer, Long> {
 
     /**
-     * Find all active stamp answers ordered by priority descending
+     * Find all active stamp answers ordered by created date descending
      */
-    List<StampAnswer> findByIsActiveTrueOrderByPriorityDesc();
-
-    /**
-     * Find by category and active status
-     */
-    List<StampAnswer> findByCategoryAndIsActiveTrue(String category);
+    List<StampAnswer> findByIsActiveTrueOrderByCreatedAtDesc();
 
     /**
      * Search stamp answers by question or keywords (case-insensitive)
@@ -34,11 +29,6 @@ public interface StampAnswerRepository extends JpaRepository<StampAnswer, Long> 
      * Find top N most used stamp answers
      */
     List<StampAnswer> findTop10ByIsActiveTrueOrderByUsageCountDesc();
-
-    /**
-     * Find all by category
-     */
-    List<StampAnswer> findByCategory(String category);
 
     /**
      * Check if question already exists (for unique validation)

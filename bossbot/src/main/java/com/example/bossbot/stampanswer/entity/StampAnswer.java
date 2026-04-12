@@ -29,13 +29,6 @@ public class StampAnswer {
     @Column(columnDefinition = "TEXT")
     private String answer;
 
-    @Column(length = 50)
-    private String category;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer priority = 0;
-
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;

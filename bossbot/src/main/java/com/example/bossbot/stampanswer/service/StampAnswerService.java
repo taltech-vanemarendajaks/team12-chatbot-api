@@ -24,14 +24,9 @@ public interface StampAnswerService {
     List<StampAnswerResponse> getAll();
 
     /**
-     * Get all active stamp answers ordered by priority
+     * Get all active stamp answers
      */
     List<StampAnswerResponse> getAllActive();
-
-    /**
-     * Get stamp answers by category
-     */
-    List<StampAnswerResponse> getByCategory(String category);
 
     /**
      * Search stamp answers by question or keywords

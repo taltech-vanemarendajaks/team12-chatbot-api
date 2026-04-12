@@ -18,10 +18,6 @@ public class UpdateStampAnswerRequest {
 
     private String answer;
 
-    private String category;
-
-    private Integer priority;
-
     private Boolean isActive;
 
     // TODO: Remove this field when Spring Security is implemented
