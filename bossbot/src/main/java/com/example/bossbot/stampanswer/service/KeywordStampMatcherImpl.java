@@ -31,7 +31,7 @@ public class KeywordStampMatcherImpl implements StampMatcherService {
 
     @Override
     public void refreshCache() {
-        cache.set(List.copyOf(repository.findByIsActiveTrueOrderByPriorityDesc()));
+        cache.set(List.copyOf(repository.findByIsActiveTrueOrderByCreatedAtDesc()));
         log.info("Keyword stamp matcher cache refreshed ({} entries)", cache.get().size());
     }
 

@@ -48,7 +48,6 @@ class OllamaStampMatcherImplTest {
                 .question("What is Spring Boot?")
                 .keywords("spring, boot, framework")
                 .answer("Spring Boot is a framework...")
-                .priority(5)
                 .isActive(true)
                 .build();
     }
@@ -57,7 +56,7 @@ class OllamaStampMatcherImplTest {
     @DisplayName("Should find match when similarity is above threshold")
     void testFindBestMatch_highSimilarity() {
         double[] embedding = {0.1, 0.2, 0.3};
-        when(repository.findByIsActiveTrueOrderByPriorityDesc()).thenReturn(List.of(testStampAnswer));
+        when(repository.findByIsActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of(testStampAnswer));
         when(embeddingService.embedBatch(any())).thenReturn(List.of(embedding));
         when(embeddingService.embed("What is Spring Boot")).thenReturn(embedding);
         matcher.refreshCache();
@@ -73,7 +72,7 @@ class OllamaStampMatcherImplTest {
     void testFindBestMatch_belowThreshold() {
         double[] docEmbedding = {1.0, 0.0};
         double[] queryEmbedding = {0.0, 1.0};
-        when(repository.findByIsActiveTrueOrderByPriorityDesc()).thenReturn(List.of(testStampAnswer));
+        when(repository.findByIsActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of(testStampAnswer));
         when(embeddingService.embedBatch(any())).thenReturn(List.of(docEmbedding));
         when(embeddingService.embed("random gibberish text")).thenReturn(queryEmbedding);
         matcher.refreshCache();
@@ -87,7 +86,7 @@ class OllamaStampMatcherImplTest {
     @DisplayName("Should fall back to keyword matching when Ollama is down at query time")
     void testFindBestMatch_ollamaDown_fallsBackToKeywords() {
         double[] embedding = {0.1, 0.2, 0.3};
-        when(repository.findByIsActiveTrueOrderByPriorityDesc()).thenReturn(List.of(testStampAnswer));
+        when(repository.findByIsActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of(testStampAnswer));
         when(embeddingService.embedBatch(any())).thenReturn(List.of(embedding));
         matcher.refreshCache();
 
@@ -112,7 +111,7 @@ class OllamaStampMatcherImplTest {
     @DisplayName("Should recompute embeddings on cache refresh")
     void testRefreshCache_recomputesEmbeddings() {
         double[] embedding = {0.1, 0.2, 0.3};
-        when(repository.findByIsActiveTrueOrderByPriorityDesc()).thenReturn(List.of(testStampAnswer));
+        when(repository.findByIsActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of(testStampAnswer));
         when(embeddingService.embedBatch(any())).thenReturn(List.of(embedding));
 
         matcher.refreshCache();
@@ -123,7 +122,7 @@ class OllamaStampMatcherImplTest {
     @Test
     @DisplayName("Should handle Ollama being down during cache refresh")
     void testRefreshCache_ollamaDown() {
-        when(repository.findByIsActiveTrueOrderByPriorityDesc()).thenReturn(List.of(testStampAnswer));
+        when(repository.findByIsActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of(testStampAnswer));
         when(embeddingService.embedBatch(any())).thenThrow(new OllamaException("Connection refused"));
 
         matcher.refreshCache();
@@ -134,15 +133,15 @@ class OllamaStampMatcherImplTest {
     }
 
     @Test
-    @DisplayName("Should prefer higher priority stamp answer when similarities are equal")
-    void testFindBestMatch_respectsPriority() {
-        StampAnswer lowPriority = StampAnswer.builder()
-                .id(2L).question("What is Spring Boot?").keywords("spring").priority(1).isActive(true).build();
-        StampAnswer highPriority = StampAnswer.builder()
-                .id(3L).question("What is Spring Boot?").keywords("spring").priority(10).isActive(true).build();
+    @DisplayName("Should return first stamp answer when similarities are equal")
+    void testFindBestMatch_returnsFirstWhenSimilaritiesAreEqual() {
+        StampAnswer first = StampAnswer.builder()
+                .id(2L).question("What is Spring Boot?").keywords("spring").isActive(true).build();
+        StampAnswer second = StampAnswer.builder()
+                .id(3L).question("What is Spring Boot?").keywords("spring").isActive(true).build();
 
         double[] embedding = {0.5, 0.5, 0.5};
-        when(repository.findByIsActiveTrueOrderByPriorityDesc()).thenReturn(List.of(highPriority, lowPriority));
+        when(repository.findByIsActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of(first,second));
         when(embeddingService.embedBatch(any())).thenReturn(List.of(embedding, embedding));
         when(embeddingService.embed("What is Spring Boot")).thenReturn(embedding);
         matcher.refreshCache();
@@ -150,6 +149,6 @@ class OllamaStampMatcherImplTest {
         Optional<StampAnswerResponse> result = matcher.findBestMatch("What is Spring Boot");
 
         assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo(3L);
+        assertThat(result.get().getId()).isEqualTo(2L);
     }
 }

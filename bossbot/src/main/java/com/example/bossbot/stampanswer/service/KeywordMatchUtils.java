@@ -36,7 +36,7 @@ final class KeywordMatchUtils {
             long unionSize = inputWords.size() + answerWords.size() - matchCount;
             double score = unionSize == 0 ? 0.0 : (double) matchCount / unionSize;
 
-            if (score > bestScore || (score == bestScore && bestMatch != null && sa.getPriority() > bestMatch.getPriority())) {
+            if (score > bestScore || (score == bestScore && bestMatch != null)) {
                 bestScore = score;
                 bestMatch = sa;
             }

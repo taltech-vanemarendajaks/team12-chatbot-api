@@ -42,7 +42,6 @@ class KeywordStampMatcherImplTest {
                 .question("What is Spring Boot?")
                 .keywords("spring, boot, framework")
                 .answer("Spring Boot is a framework...")
-                .priority(5)
                 .isActive(true)
                 .build();
     }
@@ -50,17 +49,17 @@ class KeywordStampMatcherImplTest {
     @Test
     @DisplayName("Should load cache on refresh")
     void testRefreshCache() {
-        when(repository.findByIsActiveTrueOrderByPriorityDesc()).thenReturn(List.of(testStampAnswer));
+        when(repository.findByIsActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of(testStampAnswer));
 
         matcher.refreshCache();
 
-        verify(repository).findByIsActiveTrueOrderByPriorityDesc();
+        verify(repository).findByIsActiveTrueOrderByCreatedAtDesc();
     }
 
     @Test
     @DisplayName("Should find match with good keyword overlap")
     void testFindBestMatch_goodOverlap() {
-        when(repository.findByIsActiveTrueOrderByPriorityDesc()).thenReturn(List.of(testStampAnswer));
+        when(repository.findByIsActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of(testStampAnswer));
         matcher.refreshCache();
 
         Optional<StampAnswerResponse> result = matcher.findBestMatch("What is Spring Boot");
@@ -72,7 +71,7 @@ class KeywordStampMatcherImplTest {
     @Test
     @DisplayName("Should return empty for short input")
     void testFindBestMatch_shortInput() {
-        when(repository.findByIsActiveTrueOrderByPriorityDesc()).thenReturn(List.of(testStampAnswer));
+        when(repository.findByIsActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of(testStampAnswer));
         matcher.refreshCache();
 
         Optional<StampAnswerResponse> result = matcher.findBestMatch("ab");
@@ -83,7 +82,7 @@ class KeywordStampMatcherImplTest {
     @Test
     @DisplayName("Should return empty when cache is empty")
     void testFindBestMatch_emptyCache() {
-        when(repository.findByIsActiveTrueOrderByPriorityDesc()).thenReturn(List.of());
+        when(repository.findByIsActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of());
         matcher.refreshCache();
 
         Optional<StampAnswerResponse> result = matcher.findBestMatch("What is Spring Boot");
@@ -94,7 +93,7 @@ class KeywordStampMatcherImplTest {
     @Test
     @DisplayName("Should return empty for irrelevant input")
     void testFindBestMatch_noOverlap() {
-        when(repository.findByIsActiveTrueOrderByPriorityDesc()).thenReturn(List.of(testStampAnswer));
+        when(repository.findByIsActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of(testStampAnswer));
         matcher.refreshCache();
 
         Optional<StampAnswerResponse> result = matcher.findBestMatch("hello world today");

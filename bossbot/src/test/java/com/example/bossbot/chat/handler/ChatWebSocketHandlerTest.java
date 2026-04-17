@@ -64,7 +64,7 @@ class ChatWebSocketHandlerTest {
         }
 
         // Then — all 3 should reach the chat service
-        verify(chatService, times(3)).processMessage(eq(1L), any(), any());
+        verify(chatService, times(3)).processMessage(eq(1L), anyString(), any(), any());
     }
 
     @Test
@@ -79,13 +79,13 @@ class ChatWebSocketHandlerTest {
         }
 
         // The 4th message goes through but sets cooldown
-        verify(chatService, times(4)).processMessage(eq(1L), any(), any());
+        verify(chatService, times(4)).processMessage(eq(1L), anyString(), any(), any());
 
         // 5th message should be rate limited
         handler.handleTextMessage(session, createMessage(1L, "Msg 5"));
 
         // Still only 4 calls to chatService
-        verify(chatService, times(4)).processMessage(eq(1L), any(), any());
+        verify(chatService, times(4)).processMessage(eq(1L), anyString(), any(), any());
 
         // Verify a RATE_LIMITED response was sent
         ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
@@ -142,7 +142,7 @@ class ChatWebSocketHandlerTest {
         }
 
         // 4 before disconnect + 3 after reconnect = 7 total
-        verify(chatService, times(7)).processMessage(eq(1L), any(), any());
+        verify(chatService, times(7)).processMessage(eq(1L), anyString(), any(), any());
     }
 
     @Test

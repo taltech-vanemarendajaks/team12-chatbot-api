@@ -41,7 +41,7 @@ public class OllamaStampMatcherImpl implements StampMatcherService {
 
     @Override
     public void refreshCache() {
-        List<StampAnswer> active = repository.findByIsActiveTrueOrderByPriorityDesc();
+        List<StampAnswer> active = repository.findByIsActiveTrueOrderByCreatedAtDesc();
 
         if (active.isEmpty()) {
             cache.set(List.of());
@@ -114,8 +114,7 @@ public class OllamaStampMatcherImpl implements StampMatcherService {
                 if (entry.embedding() == null) continue;
                 double similarity = cosineSimilarity(inputEmbedding, entry.embedding());
                 if (similarity > bestSimilarity ||
-                        (similarity == bestSimilarity && bestMatch != null
-                                && entry.stampAnswer().getPriority() > bestMatch.getPriority())) {
+                        (similarity == bestSimilarity && bestMatch != null)) {
                     bestSimilarity = similarity;
                     bestMatch = entry.stampAnswer();
                 }
