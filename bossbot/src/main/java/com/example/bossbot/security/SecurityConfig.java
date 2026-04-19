@@ -118,7 +118,6 @@ public class SecurityConfig {
                 .requestCache(RequestCacheConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> {
-                    // TODO:: permitAll - remove in production
                     if (permitAll) {
                         auth.anyRequest().permitAll();
                     } else {
@@ -126,7 +125,9 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .requestMatchers("/", "/error", "/oauth2/**", "/login/oauth2/code/**", "/auth/login/success")
                                 .permitAll()
-                                // TODO: add other public API EP if any
+                                // Actuator endpoints - allow unauthenticated for health checks and Prometheus scraping
+                                // In production, we can consider IP allowlisting at reverse proxy/firewall level
+                                .requestMatchers("/actuator/health", "/actuator/prometheus", "/actuator/info").permitAll()
                                 // All other API requests require authentication
                                 .anyRequest().authenticated();
                     }
