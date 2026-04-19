@@ -1,0 +1,284 @@
+Access Swagger:
+`http://localhost:8080/swagger-ui.html`
+add `springdoc-openapi-starter-webmvc-ui`
+
+REST APIs (@RestController) return JSON → Next.js fetch(). MVC views (@Controller) render HTML templates
+———————-
+Implementation: pgvector documents table in Spring Boot, structure models with Entity (DB mapping), DTO (API transfer), and Response (view data) in the model/ folder
+———————-
+Entity: pgvector column mapping, Hibernate handles SQL
+DTO: Clean API contracts, no DB exposure
+Response: Frontend-friendly, hides embedding vector
+———————————-
+Complete Model Structure
+———————————-
+src/main/java/com/example/docpgvector/model/
+├── Document.java              # JPA Entity ← DB table
+├── DocumentDto.java           # API input/output
+├── DocumentResponse.java      # Controller → frontend
+└── DocumentSearchRequest.java # Similarity search
+1. Entity (Document.java) - Maps to documents table
+
+package com.example.docpgvector.model;
+
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+@Entity
+@Table(name = "documents")
+public class Document {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    private String title;
+    @Column(columnDefinition = "text")
+    private String content;
+    
+    @Column(name = "embedding", columnDefinition = "vector(1536)")
+    @JsonIgnore  // Don't serialize binary vectors
+    private float[] embedding;
+    
+    private LocalDateTime createdAt = LocalDateTime.now();
+    
+    // constructors, getters, setters
+    public Document() {}
+}
+2. DTOs for API
+
+// DocumentDto.java - For create/update
+public record DocumentDto(
+    String title, 
+    String content, 
+    float[] embedding  // From OpenAI API
+) {}
+
+// DocumentResponse.java - Clean API response
+public record DocumentResponse(
+    Long id,
+    String title,
+    String content,
+    LocalDateTime createdAt
+) {}
+3. Controller Usage
+
+@PostMapping
+public DocumentResponse create(@RequestBody DocumentDto dto) {
+    Document entity = new Document();
+    entity.setTitle(dto.title());
+    entity.setContent(dto.content());
+    entity.setEmbedding(dto.embedding());
+    Document saved = repo.save(entity);
+    return new DocumentResponse(saved.getId(), saved.getTitle(), 
+                               saved.getContent(), saved.getCreatedAt());
+}
+Terminal Commands
+
+# Create all model files
+mkdir -p src/main/java/com/example/docpgvector/model
+
+# Generate from your existing entity
+cat > src/main/java/com/example/docpgvector/model/Document.java << 'EOF'
+[paste Entity code above]
+EOF
+
+
+
+——————-
+Model Folder
+———————
+src/
+├── main/
+│   └── java/
+│       └── com/
+│           └── example/
+│               └── docpgvector/
+│                   ├── DocPgVectorApplication.java
+│                   ├── controller/
+│                   ├── service/
+│                   ├── repository/
+│                   └── model/           # ← MODEL FOLDER HERE
+│                       ├── Document.java     # JPA Entity
+│                       ├── DocumentDto.java  # DTO for API
+│                       └── DocumentResponse.java
+Terminal Commands
+
+# Create model folder
+mkdir -p src/main/java/com/example/docpgvector/model
+
+# Move your Document entity here
+mv src/main/java/com/example/docpgvector/Document.java \
+   src/main/java/com/example/docpgvector/model/
+
+# Update package declaration
+sed -i 's/package com.example.docpgvector;/package com.example.docpgvector.model;/' \
+   src/main/java/com/example/docpgvector/model/Document.java
+Complete Document.java (in model/)
+
+package com.example.docpgvector.model;
+
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+@Entity
+@Table(name = "documents")
+public class Document {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    private String title;
+    
+    @Column(columnDefinition = "text")
+    private String content;
+    
+    @Column(name = "embedding", columnDefinition = "vector(1536)")
+    private float[] embedding;  // pgvector
+    
+    // constructors, getters, setters
+    public Document() {}
+    
+    // ... getters/setters
+}
+DTO Example (same model folder)
+
+package com.example.docpgvector.model;
+
+public record DocumentDto(Long id, String title, String content) {}
+Your full structure now:
+
+com.example.docpgvector/
+├── controller/     # DocumentController.java
+├── model/          # Document.java, DocumentDto.java ← NEW
+├── service/        # DocumentService.java  
+├── repository/     # DocumentRepository.java
+└── DocPgVectorApplication.javaUpdate imports in controller/service: import com.example.docpgvector.model.Document;
+
+—————-
+Viewer Folder Structure:
+——————
+src/
+├── main/
+│   ├── java/com/example/
+│   │   ├── controller/DocumentController.java  # Returns view names
+│   │   └── ...
+│   └── resources/
+│       ├── templates/          # ← VIEWER FOLDER HERE
+│       │   ├── documents/
+│       │   │   ├── list.html   # For GET /documents
+│       │   │   ├── form.html   # For create/edit forms
+│       │   │   └── detail.html # For single document view
+│       │   └── layout/
+│       │       └── base.html   # Shared layout
+│       ├── static/             # CSS/JS/images (public)
+│       └── application.yml
+└── test/
+Controller for MVC Views (Not REST)
+
+Update your DocumentController to return view names instead of JSON:
+
+@Controller    // ← Not @RestController
+@RequestMapping("/documents")
+public class DocumentController {
+    @Autowired private DocumentRepository repo;
+
+    @GetMapping
+    public String list(Model model) {
+        model.addAttribute("documents", repo.findAll());
+        return "documents/list";  // → templates/documents/list.html
+    }
+
+    @GetMapping("/new")
+    public String createForm(Model model) {
+        model.addAttribute("document", new Document());
+        return "documents/form";
+    }
+
+    @PostMapping
+    public String save(@ModelAttribute Document doc) {
+        repo.save(doc);
+        return "redirect:/documents";
+    }
+}
+Terminal Commands
+
+# Create viewer folder structure
+mkdir -p src/main/resources/templates/documents
+mkdir -p src/main/resources/static/css
+
+# Add Thymeleaf dependency (pom.xml)
+mvn dependency:get -Dartifact=org.springframework.boot:spring-boot-starter-thymeleaf
+
+# Sample list.html (Thymeleaf)
+cat > src/main/resources/templates/documents/list.html << 'EOF'
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <h1>Documents</h1>
+    <table>
+        <tr th:each="doc : ${documents}">
+            <td th:text="${doc.title}"></td>
+            <td th:text="${doc.content}"></td>
+        </tr>
+    </table>
+    <a href="/documents/new">New Document</a>
+</body>
+</html>
+EOF
+
+——————-
+Controller Folder
+———————
+src/
+├── main/
+│   └── java/
+│       └── com/
+│           └── example/
+│               └── docpgvector/          # Your base package
+│                   ├── DocPgVectorApplication.java  # @SpringBootApplication
+│                   ├── controller/       # ← CONTROLLER FOLDER HERE
+│                   │   ├── DocumentController.java
+│                   │   └── UserController.java
+│                   ├── service/
+│                   │   └── DocumentService.java
+│                   ├── repository/
+│                   │   └── DocumentRepository.java
+│                   └── entity/
+│                       └── Document.java
+└── test/
+    └── java/com/example/docpgvector/
+        └── controller/
+            └── DocumentControllerTest.java
+Terminal Commands
+
+# Create controller folder structure
+mkdir -p src/main/java/com/example/docpgvector/controller
+mkdir -p src/main/java/com/example/docpgvector/service
+mkdir -p src/main/java/com/example/docpgvector/repository
+mkdir -p src/main/java/com/example/docpgvector/entity
+mkdir -p src/test/java/com/example/docpgvector/controller
+
+# Move your existing DocumentController.java here:
+mv src/main/java/com/example/docpgvector/DocumentController.java \
+   src/main/java/com/example/docpgvector/controller/
+
+# Update package declaration in DocumentController.java:
+sed -i 's/package com.example.docpgvector;/package com.example.docpgvector.controller;/' \
+   src/main/java/com/example/docpgvector/controller/DocumentController.java
+Package Declaration
+
+Your DocumentController.java should start with:
+
+package com.example.docpgvector.controller;  // Matches folder path
+
+@RestController
+@RequestMapping("/api/documents")
+public class DocumentController {
+    // Your existing code...
+}
+Complete Layered Structure
+
+com.example.docpgvector/
+├── controller/     # HTTP endpoints (@RestController/@Controller)
+├── service/        # Business logic (@Service)
+├── repository/     # Data access (@Repository)
+├── entity/         # JPA models (@Entity)
+└── config/         # @Configuration classes

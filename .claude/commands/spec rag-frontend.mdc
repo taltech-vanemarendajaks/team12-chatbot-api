@@ -1,0 +1,137 @@
+# Spec.mdc - Next.js RAG Chatbot Frontend
+
+## Overview
+Production-ready **2-page Next.js 15 App Router** chatbot with RAG (Retrieval-Augmented Generation). Upload documents → chat with your knowledge base.
+
+**Status**: Sprint 1 (P0)
+
+## Pages Structure
+
+```
+app/
+├── conversation/           # Chat UI + history (client)
+│   └── page.tsx
+├── add-docs/              # File upload + indexing (client)
+│   └── page.tsx
+├── layout.tsx             # Shared root layout
+└── globals.css            # Tailwind + custom styles
+```
+
+## Core Features
+
+### 1. Conversation Page (`app/conversation/page.tsx`)
+**Client-rendered chat interface**
+```
+✅ Real-time chat with OpenAI (gpt-4o-mini)
+✅ Message history (Prisma Message model)  
+✅ RAG context injection (pgvector chunks)
+✅ Dehydrated state
+✅ Previous conversations list
+```
+
+**Key Components**:
+```tsx
+- ChatWindow (messages + input)
+- MessageBubble (user/assistant)
+- ConversationList (server component)
+- useChat hook (state + API calls)
+```
+
+### 2. AddDocs Page (`app/add-docs/page.tsx`)
+**Document upload + indexing pipeline**
+```
+✅ Drag & drop file upload (PDF, MD, TXT)
+✅ Text extraction + chunking (1000 char chunks)
+✅ OpenAI embeddings (text-embedding-3-small)  
+✅ pgvector storage (Document + DocumentChunk)
+✅ Progress indicators
+✅ File list + delete
+```
+
+**Key Components**:
+```tsx
+- FileUploadZone (drag/drop)
+- ChunkPreview (text + embed button)
+- DocumentList (server component)
+```
+
+## Data Flow
+
+```
+1. AddDocs: File → chunks → embeddings → Prisma (DocumentChunk.embedding)
+2. Conversation: User msg → embed → pgvector search → RAG prompt → OpenAI → UI
+3. Dehydration: Server queries → client useState<Message[]>
+```
+
+## Tech Stack
+
+```
+✅ Next.js 15 App Router (Server Components + Client)
+✅ TypeScript (Prisma types everywhere)
+✅ Tailwind CSS + shadcn/ui (design system)
+✅ Prisma + pgvector (Postgres vectors)
+✅ Vercel AI SDK
+✅ @ai-sdk/vercel (chat.completions + embeddings)
+✅ React 19 (useTransition, useOptimistic)
+✅ Zod (API validation)
+```
+
+## State Management Pattern
+
+**Server Components** → **Dehydration** → **Client useState**
+```tsx
+// Server Component (app/conversation/page.tsx)
+```
+
+## API Routes
+
+```
+✅ POST /api/chat           # RAG conversation (messages → OpenAI)
+✅ POST /api/analyze-text   # Text analysis (existing)
+✅ POST /api/docs           # Upload + chunk + embed + store
+✅ GET  /api/conversations  # List user conversations
+✅ GET  /api/docs           # List user documents
+```
+
+## UI Components Library (shadcn/ui)
+```
+- Button, Input, Card, Badge, Drawer
+- Progress, Skeleton, ScrollArea  
+- Dialog (file preview), DropdownMenu
+- Chat bubbles (simple)
+- Data table (documents list)
+```
+
+## Layout Requirements
+
+**Root `app/layout.tsx`**:
+```tsx
+- Responsive sidebar (collapsible)
+- Top nav (right: user )
+- Dark mode toggle
+- Tailwind + shadcn theme provider
+```
+
+## Success Metrics
+```
+✅ Chat latency < 3s
+✅ Type errors = 0 (Prisma + Zod)
+✅ Mobile responsive (iPhone 14+)
+✅ Vercel deploy 1-click
+```
+
+## Dependencies
+```bash
+npm i next@15 prisma @prisma/client
+@ai-sdk/vercel lucide-react
+shadcn-ui@latest tailwindcss
+zod react-markdown
+```
+
+## GitHub Project Integration
+```
+Sprint 1: Conversation page (5pt)
+Sprint 1: AddDocs page (3pt)
+Sprint 2: RAG backend (8pt)
+Sprint 2: pgvector (5pt)
+```
