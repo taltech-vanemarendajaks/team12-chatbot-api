@@ -128,6 +128,8 @@ public class SecurityConfig {
                                 // Actuator endpoints - allow unauthenticated for health checks and Prometheus scraping
                                 // In production, we can consider IP allowlisting at reverse proxy/firewall level
                                 .requestMatchers("/actuator/health", "/actuator/prometheus", "/actuator/info").permitAll()
+                                // Local dev endpoints - allow checking security status
+                                .requestMatchers("/api/v1/security-status").permitAll()
                                 // All other API requests require authentication
                                 .anyRequest().authenticated();
                     }
