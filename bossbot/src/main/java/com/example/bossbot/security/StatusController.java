@@ -13,12 +13,12 @@ import java.util.Map;
  * Controller for managing application status endpoints.
  *
  * Serves as a REST API to provide status-related information about the application
- * when running in a "local" environment profile.
+ * when running in a "local" or "docker" environment profile.
  *
  * The controller includes an endpoint to check the security configuration of the application
  * to enable FE run locally w/o security for easier development
  */
-@Profile("local")
+@Profile({"local", "docker"})
 @RestController
 @RequestMapping("api/v1")
 public class StatusController {
