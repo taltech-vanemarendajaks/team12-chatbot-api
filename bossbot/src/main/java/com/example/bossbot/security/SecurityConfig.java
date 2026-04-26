@@ -39,6 +39,9 @@ import java.util.List;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.jwt.Jwt;
 
+import com.example.bossbot.auth.AuthService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+
 /**
  * Configuration class for Spring Security.
  * Defines authentication and authorization rules, configures JWT-based stateless sessions,
@@ -60,6 +63,14 @@ public class SecurityConfig {
     private final ClientRegistrationRepository clientRegistrationRepository;
     @Value("${app.security.permit-all:false}") // by default false
     private boolean permitAll;
+
+    // Frontend base URL used for redirect after successful OAuth login
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
+    // JWT cookie lifetime (used when issuing auth cookie after login)
+    @Value("${jwt.expiration.milliseconds}")
+    private int jwtCookieMaxAgeMilliSeconds;
 
     @Bean
     public JwtDecoder jwtDecoder(JwtService jwtService) {
@@ -83,7 +94,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    CorsConfigurationSource corsConfigurationSource,
                                                    UserRepository userRepository,
-                                                   JwtDecoder jwtDecoder) throws Exception {
+                                                   JwtDecoder jwtDecoder,
+                                                   AuthService authService) throws Exception {
 
         DefaultOAuth2AuthorizationRequestResolver defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(
                 clientRegistrationRepository, "/oauth2/authorization");
@@ -140,8 +152,28 @@ public class SecurityConfig {
                                 request -> request.getRequestURI().startsWith("/api/")
                         )
                 )
+                // Custom OAuth2 success flow:
+                // After successful Google authentication:
+                // Convert OAuth user → application user and issue JWT
+                // Set JWT as HTTP-only cookie (used by backend for auth)
+                // Redirect to frontend ("/"), so app loads with authenticated session
+                // Needed because defaultSuccessUrl does not allow setting JWT cookie
                 .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("/auth/login/success", true)
+                        .successHandler((request, response, authentication) -> {
+                            OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+
+                            var result = authService.processOAuthLogin(oauthToken);
+                            int jwtCookieMaxAgeSeconds = jwtCookieMaxAgeMilliSeconds / 1000;
+
+                            Cookie cookie = new Cookie("jwt", result.dto().token());
+                            cookie.setHttpOnly(true);
+                            cookie.setSecure(frontendUrl.startsWith("https://"));
+                            cookie.setPath("/");
+                            cookie.setMaxAge(jwtCookieMaxAgeSeconds);
+
+                            response.addCookie(cookie);
+                            response.sendRedirect(frontendUrl + "/");
+                        })
                         .authorizationEndpoint(auth -> auth.authorizationRequestResolver(customResolver)))
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.decoder(jwtDecoder)

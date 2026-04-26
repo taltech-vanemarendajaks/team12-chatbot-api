@@ -42,7 +42,7 @@ public class AuthController {
     @PostConstruct
     void validateConfig() {
         // Hardcoded due to security: validate on startup, to keep app from running if urls get compromised
-        List<String> allowedUrls = List.of("http://localhost:5173");
+        List<String> allowedUrls = List.of("http://localhost:5173", "http://bossbot.mooo.com");
         if(!allowedUrls.contains(frontendUrl)){
             throw new IllegalStateException("Untrusted frontend URL: " + frontendUrl);
         }
@@ -102,7 +102,7 @@ public class AuthController {
     private Cookie createOrClearJwtCookie(String token, Integer maxAgeSeconds){
         Cookie cookie = new Cookie("jwt", token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(frontendUrl.startsWith("https://"));
         cookie.setPath("/");
         cookie.setMaxAge(maxAgeSeconds);
 
