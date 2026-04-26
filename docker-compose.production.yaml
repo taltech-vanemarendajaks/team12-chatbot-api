@@ -1,4 +1,3 @@
-  ubuntu@ip-172-31-37-193:~/team12-chatbot-api$ cat docker-compose.yaml
   services:
     postgres:
       image: ankane/pgvector
