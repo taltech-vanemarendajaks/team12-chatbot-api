@@ -1,5 +1,6 @@
 package com.example.bossbot.security;
 
+import com.example.bossbot.role.RoleName;
 import com.example.bossbot.user.User;
 import com.example.bossbot.user.UserRepository;
 import jakarta.servlet.http.Cookie;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -58,6 +60,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final ClientRegistrationRepository clientRegistrationRepository;
@@ -130,18 +133,22 @@ public class SecurityConfig {
                 .requestCache(RequestCacheConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> {
+                    // TODO:: permitAll - remove in production
                     if (permitAll) {
                         auth.anyRequest().permitAll();
                     } else {
                         auth
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers("/", "/error", "/oauth2/**", "/login/oauth2/code/**", "/auth/login/success")
+                                .requestMatchers("/auth/dev/**", "/", "/error", "/oauth2/**", "/login/oauth2/code/**", "/auth/login/success")
                                 .permitAll()
                                 // Actuator endpoints - allow unauthenticated for health checks and Prometheus scraping
                                 // In production, we can consider IP allowlisting at reverse proxy/firewall level
                                 .requestMatchers("/actuator/health", "/actuator/prometheus", "/actuator/info").permitAll()
                                 // Local dev endpoints - allow checking security status
                                 .requestMatchers("/api/v1/security-status").permitAll()
+                                // TODO: add other public API EP if any, no admin EP now, but block just in case if someone adds them
+                                .requestMatchers("/api/v1/admin/**").hasRole(RoleName.ADMIN.name())
+                                .requestMatchers("/api/v1/**").hasAnyRole(RoleName.USER.name(), RoleName.ADMIN.name())
                                 // All other API requests require authentication
                                 .anyRequest().authenticated();
                     }

@@ -5,6 +5,7 @@ import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public interface ConversationRepository extends JpaRepository<@NonNull Conversation, @NonNull Long> {
@@ -13,5 +14,7 @@ public interface ConversationRepository extends JpaRepository<@NonNull Conversat
     List<Conversation> findByUserIdOrderByUpdatedAtAsc(Long id);
 
     List<Conversation> findByUserIdAndActiveTrueOrderByUpdatedAtAsc(Long id);
+
+    Optional<Conversation> findByIdAndUserId(Long conversationId, Long userId);
 
 }

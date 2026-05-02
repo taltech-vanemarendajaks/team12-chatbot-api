@@ -3,8 +3,10 @@ package com.example.bossbot.conversation.service;
 import com.example.bossbot.conversation.dto.ConversationResponse;
 import com.example.bossbot.conversation.dto.CreateConversationRequest;
 import com.example.bossbot.conversation.dto.UpdateConversationRequest;
+import com.example.bossbot.conversation.entity.Conversation;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ConversationService {
 
@@ -21,12 +23,12 @@ public interface ConversationService {
     /**
      * Get all user conversations, ordered latest updated first.
      */
-    List<ConversationResponse> getAll(Long userId); // TODO: from auth
+    List<ConversationResponse> getAll(); // from auth
 
     /**
      * Get all active user conversations, ordered latest updated first.
      */
-    List<ConversationResponse> getAllActive(Long userId); // TODO: from auth
+    List<ConversationResponse> getAllActive(); // from auth
 
     /**
      * Update a conversation
@@ -37,4 +39,5 @@ public interface ConversationService {
      * Soft delete a conversation
      */
     void delete(Long id);
+
 }

@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ public class StampAnswerController {
      * Create a new stamp answer
      * POST /api/v1/stamp-answers
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a new stamp answer")
     @ApiResponse(responseCode = "201", description = "Stamp answer created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request body")
@@ -48,6 +50,7 @@ public class StampAnswerController {
      * Get stamp answer by ID
      * GET /api/v1/stamp-answers/{id}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get a stamp answer by ID")
     @ApiResponse(responseCode = "200", description = "Stamp answer found")
     @ApiResponse(responseCode = "404", description = "Stamp answer not found")
@@ -63,6 +66,7 @@ public class StampAnswerController {
      * Get all stamp answers
      * GET /api/v1/stamp-answers
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all stamp answers")
     @ApiResponse(responseCode = "200", description = "Stamp answers returned")
     @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -80,6 +84,7 @@ public class StampAnswerController {
      * Search stamp answers by question or keywords
      * GET /api/v1/stamp-answers/search?q={searchTerm}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Search stamp answers by question or keywords")
     @ApiResponse(responseCode = "200", description = "Search results returned")
     @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -95,6 +100,7 @@ public class StampAnswerController {
      * GET /api/v1/stamp-answers/by-question?q={question}
      * Returns 404 if no matching active stamp answer found
      */
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @Operation(summary = "Get answer by exact question match")
     @ApiResponse(responseCode = "200", description = "Stamp answer found")
     @ApiResponse(responseCode = "404", description = "No matching stamp answer found")
@@ -114,6 +120,7 @@ public class StampAnswerController {
      * Get most used stamp answers
      * GET /api/v1/stamp-answers/most-used
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get most used stamp answers")
     @ApiResponse(responseCode = "200", description = "Most used stamp answers returned")
     @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -128,6 +135,7 @@ public class StampAnswerController {
      * Update stamp answer
      * PUT /api/v1/stamp-answers/{id}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update a stamp answer")
     @ApiResponse(responseCode = "200", description = "Stamp answer updated successfully")
     @ApiResponse(responseCode = "404", description = "Stamp answer not found")
@@ -146,6 +154,7 @@ public class StampAnswerController {
      * Delete (deactivate) stamp answer
      * DELETE /api/v1/stamp-answers/{id}
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete (deactivate) a stamp answer")
     @ApiResponse(responseCode = "204", description = "Stamp answer deleted successfully")
     @ApiResponse(responseCode = "404", description = "Stamp answer not found")
@@ -161,6 +170,7 @@ public class StampAnswerController {
      * Record usage of a stamp answer
      * POST /api/v1/stamp-answers/{id}/usage
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Record usage of a stamp answer")
     @ApiResponse(responseCode = "200", description = "Usage recorded successfully")
     @ApiResponse(responseCode = "404", description = "Stamp answer not found")

@@ -35,8 +35,7 @@ public class ConversationController {
     @ApiResponse(responseCode = "201", description = "Conversation created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request body")
     @PostMapping
-    public ResponseEntity<@NonNull ConversationResponse> create(@Valid @RequestBody CreateConversationRequest request,
-        @RequestParam Long userId) {
+    public ResponseEntity<@NonNull ConversationResponse> create(@Valid @RequestBody CreateConversationRequest request) {
         log.info("REST request to create conversation with title: {}", request.getTitle());
         ConversationResponse response = conversationService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -62,12 +61,11 @@ public class ConversationController {
      */
     @Operation(summary = "Get all conversations for user")
     @ApiResponse(responseCode = "200", description = "Conversations returned")
-    @ApiResponse(responseCode = "400", description = "userId query parameter is required") // TODO: Temporary 400 status code as later from auth
+//    @ApiResponse(responseCode = "400", description = "userId query parameter is required") // TODO: Temporary 400 status code as later from auth
     @GetMapping
-    public ResponseEntity<@NonNull List<ConversationResponse>> getAll(
-            @RequestParam Long userId) { // TODO: Later from auth
+    public ResponseEntity<@NonNull List<ConversationResponse>> getAll() {
         log.info("REST request to get conversations");
-        List<ConversationResponse> responses = conversationService.getAll(userId); // TODO: Later from auth
+        List<ConversationResponse> responses = conversationService.getAll();
         return ResponseEntity.ok(responses);
     }
 
@@ -77,12 +75,11 @@ public class ConversationController {
      */
     @Operation(summary = "Get all conversations for user")
     @ApiResponse(responseCode = "200", description = "Conversations returned")
-    @ApiResponse(responseCode = "400", description = "userId query parameter is required") // TODO: Temporary 400 status code as later from auth
+//    @ApiResponse(responseCode = "400", description = "userId query parameter is required") // TODO: Temporary 400 status code as later from auth
     @GetMapping("/active")
-    public ResponseEntity<@NonNull List<ConversationResponse>> getAllActive(
-            @RequestParam Long userId) { // TODO: Later from auth
+    public ResponseEntity<@NonNull List<ConversationResponse>> getAllActive() {
         log.info("REST request to get active conversations");
-        List<ConversationResponse> responses = conversationService.getAllActive(userId); // TODO: Later from auth
+        List<ConversationResponse> responses = conversationService.getAllActive();
         return ResponseEntity.ok(responses);
     }
 

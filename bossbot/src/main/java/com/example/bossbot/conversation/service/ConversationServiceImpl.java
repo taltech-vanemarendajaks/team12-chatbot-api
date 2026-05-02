@@ -1,5 +1,6 @@
 package com.example.bossbot.conversation.service;
 
+import com.example.bossbot.common.ResourceNotFoundException;
 import com.example.bossbot.conversation.dto.ConversationResponse;
 import com.example.bossbot.conversation.dto.CreateConversationRequest;
 import com.example.bossbot.conversation.dto.UpdateConversationRequest;
@@ -7,6 +8,7 @@ import com.example.bossbot.conversation.entity.Conversation;
 import com.example.bossbot.conversation.repository.ConversationRepository;
 import com.example.bossbot.user.User;
 import com.example.bossbot.user.UserRepository;
+import com.example.bossbot.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,21 +24,22 @@ public class ConversationServiceImpl implements ConversationService {
     private static final String CONVERSATION_NOT_FOUND = "Conversation not found with ID: ";
 
     private final ConversationRepository repository;
-    private final UserRepository userRepository;
+//    private final UserRepository userRepository;
 
     @Override
     @Transactional
     public ConversationResponse create(CreateConversationRequest request) {
+        User currentUser = SecurityUtils.getCurrentUser();
         log.info("Creating new conversation: {}", request.getTitle());
 
         // TODO: Replace with authenticated user ID from Spring Security context
-        Long currentUserId = 1L; // placeholder until Spring Security
-        User currentUser = userRepository.findById(currentUserId).orElseThrow();
+//        Long currentUserId = 1L; // placeholder until Spring Security
+//        User currentUser = userRepository.findById(currentUserId).orElseThrow();
 
         Conversation entity = Conversation.builder()
                 .title(request.getTitle())
                 .active(true)
-                .user(currentUser) //TODO: Replace with authenticated user from Spring Security context
+                .user(currentUser)
                 .build();
 
         Conversation saved = repository.save(entity);
@@ -48,9 +51,10 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     @Transactional(readOnly = true)
     public ConversationResponse getById(Long id) {
+        Long currentUserId = SecurityUtils.getCurrentUser().getId();
         log.info("Fetching conversation with ID: {}", id);
 
-        Conversation entity = repository.findById(id)
+        Conversation entity = repository.findByIdAndUserId(id, currentUserId)
                 .orElseThrow(() -> new IllegalArgumentException(CONVERSATION_NOT_FOUND + id));
 
         return ConversationResponse.fromEntity(entity);
@@ -58,20 +62,22 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ConversationResponse> getAll(Long userId) { // TODO: Later from auth
-        log.info("Fetching all conversations for user with ID: {}", userId);
+    public List<ConversationResponse> getAll() {
+        Long currentUserId = SecurityUtils.getCurrentUser().getId();
+        log.info("Fetching all conversations for user with ID: {}", currentUserId);
 
-        return repository.findByUserIdOrderByUpdatedAtAsc(userId).stream()
+        return repository.findByUserIdOrderByUpdatedAtAsc(currentUserId).stream()
                 .map(ConversationResponse::fromEntity)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ConversationResponse> getAllActive(Long userId) {
+    public List<ConversationResponse> getAllActive() {
+        Long currentUserId = SecurityUtils.getCurrentUser().getId();
         log.info("Fetching all active conversations");
 
-        return repository.findByUserIdAndActiveTrueOrderByUpdatedAtAsc(userId).stream()
+        return repository.findByUserIdAndActiveTrueOrderByUpdatedAtAsc(currentUserId).stream()
                 .map(ConversationResponse::fromEntity)
                 .toList();
     }
@@ -79,12 +85,13 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     @Transactional
     public ConversationResponse update(Long id, UpdateConversationRequest request) {
+        Long currentUserId = SecurityUtils.getCurrentUser().getId();
         log.info("Updating conversation with ID: {}", id);
 
-        Conversation entity = repository.findById(id)
+        Conversation entity = repository.findByIdAndUserId(id, currentUserId)
                 .orElseThrow(() -> new IllegalArgumentException(CONVERSATION_NOT_FOUND + id));
 
-        Long currentUserId = 1L; // placeholder until Spring Security
+//        Long currentUserId = 1L; // placeholder until Spring Security
 
         if (request.getTitle() != null) {
             entity.setTitle(request.getTitle());
@@ -102,10 +109,11 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     @Transactional
     public void delete(Long id) {
+        Long currentUserId = SecurityUtils.getCurrentUser().getId();
         log.info("Soft deleting conversation with ID: {}", id);
 
-        Conversation entity = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException(CONVERSATION_NOT_FOUND + id));
+        Conversation entity = repository.findByIdAndUserId(id, currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation not found with ID: " + id));
 
         entity.setActive(false);
         repository.save(entity);
