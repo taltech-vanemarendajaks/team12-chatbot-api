@@ -26,6 +26,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+
 @Component
 @Slf4j
 public class ChatWebSocketHandler extends TextWebSocketHandler {
@@ -102,14 +106,39 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             AtomicBoolean cancelFlag = new AtomicBoolean(false);
             cancelFlags.put(session.getId(), cancelFlag);
 
+            // Resolve the authenticated user from the WebSocket session before entering the worker thread
+            Authentication authentication = null;
+
+            if (session.getPrincipal() instanceof Authentication auth) {
+                authentication = auth;
+            } else {
+                authentication = SecurityContextHolder.getContext().getAuthentication();
+            }
+
+            // Reject unauthenticated WebSocket messages and clean up per-session state
+            if (authentication == null || !authentication.isAuthenticated()) {
+                log.warn("WebSocket message rejected because session is not authenticated: {}", session.getId());
+                sendResponse(safeSession, ChatWebSocketResponse.error("Not authenticated"));
+                cancelFlags.remove(session.getId());
+                processing.remove(session.getId());
+                return;
+            }
+
+            // Make the authenticated user available to services that read SecurityContextHolder
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            securityContext.setAuthentication(authentication);
+
             executor.execute(() -> {
                 try {
+                    SecurityContextHolder.setContext(securityContext);
+
                     chatService.processMessage(message.getConversationId(), message.getContent(),
                             response -> sendResponse(safeSession, response), cancelFlag);
                 } catch (Exception e) {
                     log.error("Error processing message: {}", e.getMessage(), e);
                     sendResponse(safeSession, ChatWebSocketResponse.error("Failed to process message"));
                 } finally {
+                    SecurityContextHolder.clearContext();
                     cancelFlags.remove(session.getId());
                     processing.remove(session.getId());
                 }
