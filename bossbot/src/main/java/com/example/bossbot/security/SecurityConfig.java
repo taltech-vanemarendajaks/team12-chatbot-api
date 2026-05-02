@@ -141,12 +141,10 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .requestMatchers("/auth/dev/**", "/", "/error", "/oauth2/**", "/login/oauth2/code/**", "/auth/login/success")
                                 .permitAll()
-                                // Actuator endpoints - allow unauthenticated for health checks and Prometheus scraping
                                 // In production, we can consider IP allowlisting at reverse proxy/firewall level
                                 .requestMatchers("/actuator/health", "/actuator/prometheus", "/actuator/info").permitAll()
                                 // Local dev endpoints - allow checking security status
                                 .requestMatchers("/api/v1/security-status").permitAll()
-                                // TODO: add other public API EP if any, no admin EP now, but block just in case if someone adds them
                                 .requestMatchers("/api/v1/admin/**").hasRole(RoleName.ADMIN.name())
                                 .requestMatchers("/api/v1/**").hasAnyRole(RoleName.USER.name(), RoleName.ADMIN.name())
                                 // All other API requests require authentication

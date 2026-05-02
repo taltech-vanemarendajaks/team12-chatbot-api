@@ -7,7 +7,6 @@ import com.example.bossbot.conversation.dto.UpdateConversationRequest;
 import com.example.bossbot.conversation.entity.Conversation;
 import com.example.bossbot.conversation.repository.ConversationRepository;
 import com.example.bossbot.user.User;
-import com.example.bossbot.user.UserRepository;
 import com.example.bossbot.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,17 +23,12 @@ public class ConversationServiceImpl implements ConversationService {
     private static final String CONVERSATION_NOT_FOUND = "Conversation not found with ID: ";
 
     private final ConversationRepository repository;
-//    private final UserRepository userRepository;
 
     @Override
     @Transactional
     public ConversationResponse create(CreateConversationRequest request) {
         User currentUser = SecurityUtils.getCurrentUser();
         log.info("Creating new conversation: {}", request.getTitle());
-
-        // TODO: Replace with authenticated user ID from Spring Security context
-//        Long currentUserId = 1L; // placeholder until Spring Security
-//        User currentUser = userRepository.findById(currentUserId).orElseThrow();
 
         Conversation entity = Conversation.builder()
                 .title(request.getTitle())
@@ -90,8 +84,6 @@ public class ConversationServiceImpl implements ConversationService {
 
         Conversation entity = repository.findByIdAndUserId(id, currentUserId)
                 .orElseThrow(() -> new IllegalArgumentException(CONVERSATION_NOT_FOUND + id));
-
-//        Long currentUserId = 1L; // placeholder until Spring Security
 
         if (request.getTitle() != null) {
             entity.setTitle(request.getTitle());

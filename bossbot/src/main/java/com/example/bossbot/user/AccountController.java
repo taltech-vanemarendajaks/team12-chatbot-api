@@ -55,31 +55,4 @@ public class AccountController {
                     e);
         }
     }
-
-//    @PostMapping("/register")
-//    @Transactional
-//    public ResponseEntity<Void> register(@RequestBody RegisterRequest req) {
-//        try {
-//            if (!req.acceptTerms())
-//                return ResponseEntity.badRequest().build();
-//
-//            User user = SecurityUtils.getCurrentUser();
-//
-//            // Set org and role if needed (idempotent: do nothing if already set)
-//            if (user.getRole() == null) {
-//                user.setRole(Role.builder().roleName(RoleName.USER).build());
-//                userRepository.save(user);
-//            }
-//
-//            // If later you click agree on register, then re-issue JWT token here.
-//            return ResponseEntity.noContent().build();
-//        } catch (ResponseStatusException e) {
-//            throw e; // Re-throw to be handled by exception handler
-//        } catch (Exception e) {
-//            throw new ResponseStatusException(
-//                    org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR,
-//                    "Failed to complete onboarding: " + e.getMessage(),
-//                    e);
-//        }
-//    }
 }

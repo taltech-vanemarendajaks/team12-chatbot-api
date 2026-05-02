@@ -61,7 +61,6 @@ public class ConversationController {
      */
     @Operation(summary = "Get all conversations for user")
     @ApiResponse(responseCode = "200", description = "Conversations returned")
-//    @ApiResponse(responseCode = "400", description = "userId query parameter is required") // TODO: Temporary 400 status code as later from auth
     @GetMapping
     public ResponseEntity<@NonNull List<ConversationResponse>> getAll() {
         log.info("REST request to get conversations");
@@ -75,7 +74,6 @@ public class ConversationController {
      */
     @Operation(summary = "Get all conversations for user")
     @ApiResponse(responseCode = "200", description = "Conversations returned")
-//    @ApiResponse(responseCode = "400", description = "userId query parameter is required") // TODO: Temporary 400 status code as later from auth
     @GetMapping("/active")
     public ResponseEntity<@NonNull List<ConversationResponse>> getAllActive() {
         log.info("REST request to get active conversations");
