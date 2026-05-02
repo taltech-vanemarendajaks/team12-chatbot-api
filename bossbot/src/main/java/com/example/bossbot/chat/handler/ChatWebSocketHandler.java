@@ -107,20 +107,13 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             cancelFlags.put(session.getId(), cancelFlag);
 
             // Resolve the authenticated user from the WebSocket session before entering the worker thread
-            Authentication authentication = null;
-
-            if (session.getPrincipal() instanceof Authentication auth) {
-                authentication = auth;
-            } else {
-                authentication = SecurityContextHolder.getContext().getAuthentication();
-            }
+            Authentication authentication = resolveAuthentication(session);
 
             // Reject unauthenticated WebSocket messages and clean up per-session state
-            if (authentication == null || !authentication.isAuthenticated()) {
+            if (isUnauthenticated(authentication)) {
                 log.warn("WebSocket message rejected because session is not authenticated: {}", session.getId());
                 sendResponse(safeSession, ChatWebSocketResponse.error("Not authenticated"));
-                cancelFlags.remove(session.getId());
-                processing.remove(session.getId());
+                clearProcessingState(session.getId());
                 return;
             }
 
@@ -139,8 +132,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                     sendResponse(safeSession, ChatWebSocketResponse.error("Failed to process message"));
                 } finally {
                     SecurityContextHolder.clearContext();
-                    cancelFlags.remove(session.getId());
-                    processing.remove(session.getId());
+                    clearProcessingState(session.getId());
                 }
             });
 
@@ -148,6 +140,23 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             log.error("Error handling WebSocket message: {}", e.getMessage(), e);
             sendResponse(safeSession, ChatWebSocketResponse.error("Failed to process message"));
         }
+    }
+
+    private Authentication resolveAuthentication(WebSocketSession session) {
+        if (session.getPrincipal() instanceof Authentication auth) {
+            return auth;
+        }
+
+        return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    private boolean isUnauthenticated(Authentication authentication) {
+        return authentication == null || !authentication.isAuthenticated();
+    }
+
+    private void clearProcessingState(String sessionId) {
+        cancelFlags.remove(sessionId);
+        processing.remove(sessionId);
     }
 
     @Override
