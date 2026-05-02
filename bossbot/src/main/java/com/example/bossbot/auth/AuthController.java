@@ -74,6 +74,11 @@ public class AuthController {
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
+            Cookie sessionCookie = new Cookie("JSESSIONID", "");
+            sessionCookie.setPath("/");
+            sessionCookie.setHttpOnly(true);
+            sessionCookie.setMaxAge(0);
+            response.addCookie(sessionCookie);
         }
 
         SecurityContextHolder.clearContext();
