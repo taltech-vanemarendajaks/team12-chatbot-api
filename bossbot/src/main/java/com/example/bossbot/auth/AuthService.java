@@ -10,6 +10,7 @@ import com.example.bossbot.user.UserMapper;
 import com.example.bossbot.user.UserRepository;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
@@ -41,6 +42,7 @@ public class AuthService {
         this.roleRepository = roleRepository;
     }
 
+    @Transactional
     public AuthResult processOAuthLogin(OAuth2AuthenticationToken auth) {
         String email = requireEmail(auth);
         String name = auth.getPrincipal().getAttribute("name");
