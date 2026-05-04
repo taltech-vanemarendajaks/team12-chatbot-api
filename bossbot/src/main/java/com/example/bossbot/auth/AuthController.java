@@ -32,7 +32,7 @@ public class AuthController {
     private String frontendUrl;
     @Value("${jwt.expiration.milliseconds}")
     private int jwtCookieMaxAgeMilliSeconds;
-    private static final String POST_LOGIN_REDIRECT_PATH = "/";
+    private static final String POST_LOGIN_REDIRECT_USER_PATH = "/";
     private static final String LOGIN_ERROR_REDIRECT_PATH = "/login?error=auth_failure";
 
     public AuthController(AuthService authService) {
@@ -58,10 +58,13 @@ public class AuthController {
             int jwtCookieMaxAgeSeconds = jwtCookieMaxAgeMilliSeconds / 1000;
             Cookie cookie = createOrClearJwtCookie(result.dto().token(), jwtCookieMaxAgeSeconds);
             response.addCookie(cookie);
-            response.sendRedirect(frontendUrl + POST_LOGIN_REDIRECT_PATH);
+
+            response.sendRedirect(frontendUrl + POST_LOGIN_REDIRECT_USER_PATH);
+
         } catch (Exception e) {
             // TODO:: create FE error page
             log.error("OAuth login failed: ", e);
+
             response.sendRedirect(frontendUrl + LOGIN_ERROR_REDIRECT_PATH);
         }
     }
@@ -71,6 +74,11 @@ public class AuthController {
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
+            Cookie sessionCookie = new Cookie("JSESSIONID", "");
+            sessionCookie.setPath("/");
+            sessionCookie.setHttpOnly(true);
+            sessionCookie.setMaxAge(0);
+            response.addCookie(sessionCookie);
         }
 
         SecurityContextHolder.clearContext();

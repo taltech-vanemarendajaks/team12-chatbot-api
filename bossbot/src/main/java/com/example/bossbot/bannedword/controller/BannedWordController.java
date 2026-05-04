@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class BannedWordController {
 
     private final BannedWordService bannedWordService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a new banned word")
     @ApiResponse(responseCode = "201", description = "Banned word created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request body")
@@ -36,6 +38,7 @@ public class BannedWordController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @Operation(summary = "Get banned word by ID")
     @ApiResponse(responseCode = "200", description = "Banned word found")
     @ApiResponse(responseCode = "404", description = "Banned word not found")
@@ -47,6 +50,7 @@ public class BannedWordController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all banned words")
     @ApiResponse(responseCode = "200", description = "Banned words returned")
     @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -60,6 +64,7 @@ public class BannedWordController {
         return ResponseEntity.ok(responses);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get banned words by category")
     @ApiResponse(responseCode = "200", description = "Banned words returned")
     @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -70,6 +75,7 @@ public class BannedWordController {
         return ResponseEntity.ok(responses);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update a banned word")
     @ApiResponse(responseCode = "200", description = "Banned word updated successfully")
     @ApiResponse(responseCode = "404", description = "Banned word not found")
@@ -84,6 +90,7 @@ public class BannedWordController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete (deactivate) a banned word")
     @ApiResponse(responseCode = "204", description = "Banned word deleted successfully")
     @ApiResponse(responseCode = "404", description = "Banned word not found")
